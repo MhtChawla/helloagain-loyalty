@@ -128,7 +128,17 @@ same pattern.
   query/mutation error generic as ApiError so the normalized error flows through
   without casting. Cleaner across HomeScreen and RewardsScreen.
 
-### ...
+### 6. Slice 5 — scan modal + coupon redemption (Claude Code)
+
+I gave prompt - `useRedeemCoupon` (writes returned cr_points then invalidates), ScanModal
+with expo-camera + manual code-entry fallback, double-scan guard, permission
+handling, wired to Home CTA. (Prompt #6)
+
+Built: coupon mutation (setQueryData(['cr']) from server-confirmed cr_points,
+then invalidate ['cr']+['rewards']), ScanModal with CameraView + onBarcodeScanned,
+manual TextInput fallback, scan lock, permission-denied handling, modal presentation.
+
+My review:
 
 ## Prompts used
 
@@ -211,7 +221,7 @@ CTA handlers: Rewards and Scan screens don't exist yet (slices 4–5). Wire the 
 Stop after this. Goal: log in → land on Home showing live points + profile from the API, with proper loading/error states. Show me the files and confirm the Query-flag-driven states, so I can review before slice 4.
 ```
 
-**#5 - Slice 3**
+**#5 - Slice 4**
 
 ```
 Continuing the loyalty app. Build slice 4: rewards list + reward redemption. Follow ARCHITECTURE.md and API_SPEC.md.
@@ -230,6 +240,25 @@ On successful redeem, give feedback (toast/inline) — the balance updates on it
 Wire Home's "View rewards" CTA to navigate here (the route exists now — remove that TODO).
 
 Stop after this. Goal: Home → Rewards → see live bounties with correct affordability, redeem an affordable one, watch the balance refetch. Show me the files and confirm: (a) affordability reads from the CR query not the bounty's echoed field, and (b) the redeem invalidates rather than guessing the balance. Review before slice 5.
+```
+
+**#6 - Slice 5**
+
+```
+Final build slice of the loyalty app. Build slice 5: scan modal + coupon redemption. Follow ARCHITECTURE.md and API_SPEC.md.
+
+src/features/loyalty/useRedeemCoupon.ts — mutation POST to the coupon-redeem endpoint with { code }. Unlike reward redeem, this response returns cr_points (the new balance). So on success: write that confirmed value into the cache with setQueryData(['cr'], ...) for an instant balance update, then invalidate ['cr'] and ['rewards'] to fully reconcile. (This is server-confirmed, not a guess — no rollback needed.)
+src/features/scan/ScanModal.tsx:
+
+expo-camera CameraView with onBarcodeScanned (QR), permission via useCameraPermissions — request on mount, handle denied gracefully.
+On scan → call redeemCoupon(scannedData). Guard against double-scan (lock after first detection so it doesn't fire repeatedly while the QR is in frame).
+Manual code-entry fallback inside the modal — a TextInput + submit, alongside the camera. Non-negotiable: covers permission denial, simulator-with-no-camera, and a reviewer who'd rather type the given code. Both paths call the same redeemCoupon.
+On success → show points gained, then dismiss back to Home (balance already synced). On error → inline error, allow re-scan/retry. Camera unmounts cleanly on dismiss.
+
+
+Wire Home's "Scan to earn" CTA to present this modal (remove the TODO). Present it as a modal route via the navigator.
+
+Stop after this. Goal: Home → Scan → either scan a QR or type the code → points added → back on Home with updated balance. Show me the files and confirm: (a) the manual fallback works with no camera, (b) coupon redeem writes the returned cr_points then invalidates, (c) double-scan is guarded. Review before we wrap.
 ```
 
 <!--  -->

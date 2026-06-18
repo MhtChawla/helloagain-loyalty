@@ -3,10 +3,12 @@ import { useAuthStore } from '../features/auth/authStore';
 import { LoginScreen } from '../features/auth/LoginScreen';
 import { HomeScreen } from '../features/loyalty/HomeScreen';
 import { RewardsScreen } from '../features/loyalty/RewardsScreen';
+import { ScanModal } from '../features/scan/ScanModal';
 
 export type RootStackParamList = {
   Home: undefined;
   Rewards: undefined;
+  ScanModal: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -30,6 +32,11 @@ export function RootNavigator() {
         name="Rewards"
         component={RewardsScreen}
         options={{ title: 'Rewards', headerShown: true }}
+      />
+      <Stack.Screen
+        name="ScanModal"
+        component={ScanModal}
+        options={{ presentation: 'modal' }}
       />
     </Stack.Navigator>
   );

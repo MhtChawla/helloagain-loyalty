@@ -92,8 +92,10 @@ export function HomeScreen() {
 
         {/* CTAs */}
         <View style={styles.ctas}>
-          {/* TODO slice 5: open ScanModal */}
-          <Button label="Scan to earn" onPress={() => { }} />
+          <Button
+            label="Scan to earn"
+            onPress={() => navigation.navigate('ScanModal')}
+          />
           <Button
             label="View rewards"
             variant="outline"
