@@ -146,6 +146,16 @@ already-redeemed error.
 
 Also while testing, found it uses `SafeAreaView` from react-native, which is depreceated so replaced all imports from `react-native-safe-area-context`.
 
+### 7. Single interceptor test (Claude Code)
+
+I gave prompt for one jest-expo test on the Axios interceptors — token injection, error
+normalization, 401-only teardown. Demonstrate approach, not a suite. (Prompt #7)
+
+Built: `client.test.ts` covering header injection (token / no-token), ApiError
+normalization, and clearAuth gated to 401 (not 400). Passing.
+Deliberately scoped to one test — prioritized state-sync correctness over coverage
+given the budget, per the architecture tradeoff.
+
 ## Prompts used
 
 **#1 Architeture (Opus)**
@@ -265,4 +275,19 @@ On success → show points gained, then dismiss back to Home (balance already sy
 Wire Home's "Scan to earn" CTA to present this modal (remove the TODO). Present it as a modal route via the navigator.
 
 Stop after this. Goal: Home → Scan → either scan a QR or type the code → points added → back on Home with updated balance. Show me the files and confirm: (a) the manual fallback works with no camera, (b) coupon redeem writes the returned cr_points then invalidates, (c) double-scan is guarded. Review before we wrap.
+```
+
+**#7 - Single interceptor test**
+
+```
+Add the single test for the loyalty app, per the testing tradeoff in ARCHITECTURE.md — one focused test that demonstrates approach, not a suite.
+
+Set up Jest with the jest-expo preset if not already configured.
+One test file for the Axios interceptors (src/api/client.test.ts). Cover the core of the API-layer resilience:
+
+Request interceptor injects Authorization: Token <token> when authStore has a token, and omits the header when there's no token.
+Response interceptor normalizes errors to the { status, message } ApiError shape.
+A 401 triggers session teardown (clearAuth), and a non-401 error (e.g. 400) does not — confirming the teardown is correctly gated.
+
+Mock authStore.getState() and Axios as needed. Keep it tight and readable — this is a demonstration of testing approach, not coverage. Run it and confirm it passes.
 ```
