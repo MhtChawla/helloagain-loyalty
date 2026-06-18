@@ -17,7 +17,7 @@ review, decisions, and integration. Log below, in order.
 
 Asked Opus to act as architect - stack, folder structure, API layer,
 state management, deliberate tradeoffs - no code, prompt below:
-with (Prompt #1) in Prompts section.
+with ([Prompt #1](#prompt-1)) in Prompts section.
 
 I was kinda solid with the architecture given but upon reviewing I needed pushed back on two things, so I reprompted with:
 
@@ -39,7 +39,7 @@ I wanted to it to build spine of the app first so I am completely satisfied with
 ##### using Sonnet 4.6
 
 I gave prompt around: build API layer + auth only — client/interceptors, endpoints,
-types, authStore, storage, useLogin. Stop before screens (Prompt #2)
+types, authStore, storage, useLogin. Stop before screens ([Prompt #2](#prompt-2))
 
 It built: storage wrapper, typed responses, endpoints, Zustand authStore
 (token/user separated — login returns no user, user loads slice 2),
@@ -56,7 +56,7 @@ Deferred queryClient setup to slice 2 (flagged by Claude Code as a prerequisite)
 ### 3. Slice 2 — query setup + login + navigation
 
 Prompt: build queryClient, App.tsx provider + hydrate-on-mount, LoginScreen
-via useLogin, RootNavigator auth gate. Stop before points/profile. (Prompt #3)
+via useLogin, RootNavigator auth gate. Stop before points/profile. ([Prompt #3](#prompt-3))
 
 It built me: `queryClient` (retry 1 not default 3, refetchOnWindowFocus off — RN has
 no window focus concept), `App.tsx` hydrates in useEffect and renders null until
@@ -73,7 +73,7 @@ token returns as specced, login works end-to-end.
 
 ### 4. Slice 3 — points + profile on Home (Claude Code)
 
-Next I gave prompt to move further to link & develop: usePoints (CR, source of truth) + useProfile queries, Card/Button/ErrorView components, HomeScreen with Query-flag-driven states. (Prompt #4)
+Next I gave prompt to move further to link & develop: usePoints (CR, source of truth) + useProfile queries, Card/Button/ErrorView components, HomeScreen with Query-flag-driven states. ([Prompt #4](#prompt-4))
 
 It built: two useQuery hooks `(['cr'], ['profile'])`, reusable components,
 HomeScreen with combined loading → ErrorView (retry only the failed query) →
@@ -95,7 +95,7 @@ ErrorView is in sync for fallbacks
 
 Prompt: useRewards (['rewards']) + useRedeemReward, RewardsScreen with FlatList,
 affordability from CR query, invalidate-on-redeem (no optimism — empty response),
-per-item pending, empty/loading/error states. (Prompt #5)
+per-item pending, empty/loading/error states. ([Prompt #5](#prompt-5))
 
 Built: bounties query, redeem mutation invalidating ['cr']+['rewards'],
 FlatList w. ListEmptyComponent, affordability from usePoints (not echoed
@@ -132,7 +132,7 @@ same pattern.
 
 I gave prompt - `useRedeemCoupon` (writes returned cr_points then invalidates), ScanModal
 with expo-camera + manual code-entry fallback, double-scan guard, permission
-handling, wired to Home CTA. (Prompt #6)
+handling, wired to Home CTA. ([Prompt #6](#prompt-6))
 
 Built: coupon mutation (setQueryData(['cr']) from server-confirmed cr_points,
 then invalidate ['cr']+['rewards']), ScanModal with CameraView + onBarcodeScanned,
@@ -149,7 +149,7 @@ Also while testing, found it uses `SafeAreaView` from react-native, which is dep
 ### 7. Single interceptor test (Claude Code)
 
 I gave prompt for one jest-expo test on the Axios interceptors — token injection, error
-normalization, 401-only teardown. Demonstrate approach, not a suite. (Prompt #7)
+normalization, 401-only teardown. Demonstrate approach, not a suite. ([Prompt #7](#prompt-7))
 
 Built: `client.test.ts` covering header injection (token / no-token), ApiError
 normalization, and clearAuth gated to 401 (not 400). Passing.
@@ -158,6 +158,7 @@ given the budget, per the architecture tradeoff.
 
 ## Prompts used
 
+<a id="prompt-1"></a>
 **#1 Architeture (Opus)**
 
 ```
@@ -188,6 +189,7 @@ Deliver this, concise and opinionated:
 Make the calls. If something in the spec is ambiguous, assume and say so.
 ```
 
+<a id="prompt-2"></a>
 **#2 - Slice 1**
 
 ```
@@ -204,6 +206,7 @@ src/features/auth/useLogin.ts — TanStack Query mutation; on success persist to
 Stop after this slice. No screens or navigation yet. Show me the files and explain the interceptor + token-injection choices so I can review before we continue.
 ```
 
+<a id="prompt-3"></a>
 **#3 - Slice 2**
 
 ```
@@ -218,6 +221,7 @@ Minimal HomeScreen.tsx placeholder — just confirms you're logged in (e.g. "Log
 Stop after this. The goal: launch → (hydrate) → login → land on placeholder Home → logout returns to login. Show me the files and confirm the gate handles the hydration-flash case, so I can review before slice 3.
 ```
 
+<a id="prompt-4"></a>
 **#4 - Slice 3**
 
 ```
@@ -237,6 +241,7 @@ CTA handlers: Rewards and Scan screens don't exist yet (slices 4–5). Wire the 
 Stop after this. Goal: log in → land on Home showing live points + profile from the API, with proper loading/error states. Show me the files and confirm the Query-flag-driven states, so I can review before slice 4.
 ```
 
+<a id="prompt-5"></a>
 **#5 - Slice 4**
 
 ```
@@ -258,6 +263,7 @@ Wire Home's "View rewards" CTA to navigate here (the route exists now — remove
 Stop after this. Goal: Home → Rewards → see live bounties with correct affordability, redeem an affordable one, watch the balance refetch. Show me the files and confirm: (a) affordability reads from the CR query not the bounty's echoed field, and (b) the redeem invalidates rather than guessing the balance. Review before slice 5.
 ```
 
+<a id="prompt-6"></a>
 **#6 - Slice 5**
 
 ```
@@ -277,6 +283,7 @@ Wire Home's "Scan to earn" CTA to present this modal (remove the TODO). Present 
 Stop after this. Goal: Home → Scan → either scan a QR or type the code → points added → back on Home with updated balance. Show me the files and confirm: (a) the manual fallback works with no camera, (b) coupon redeem writes the returned cr_points then invalidates, (c) double-scan is guarded. Review before we wrap.
 ```
 
+<a id="prompt-7"></a>
 **#7 - Single interceptor test**
 
 ```

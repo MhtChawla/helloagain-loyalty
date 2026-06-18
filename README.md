@@ -1,5 +1,7 @@
 # HelloAgain Loyalty App
 
+![App Preview](./preview.png)
+
 A React Native loyalty app built against the HelloAgain demo API: log in,
 view your points balance and profile, browse rewards, scan a coupon QR (or type
 the code) to earn points, and redeem rewards.
