@@ -53,7 +53,23 @@ My review:
 
 Deferred queryClient setup to slice 2 (flagged by Claude Code as a prerequisite).
 
-### 3.
+### 3. Slice 2 — query setup + login + navigation
+
+Prompt: build queryClient, App.tsx provider + hydrate-on-mount, LoginScreen
+via useLogin, RootNavigator auth gate. Stop before points/profile. (Prompt #3)
+
+It built me: `queryClient` (retry 1 not default 3, refetchOnWindowFocus off — RN has
+no window focus concept), `App.tsx` hydrates in useEffect and renders null until
+isHydrated, RootNavigator three-state gate:
+`(unhydrated → blank, hydrated+no token → Login, hydrated+token → Home)`,
+LoginScreen w. ApiError-shaped errors + pending spinner, placeholder HomeScreen w. logout → clearAuth.
+
+I verified the gate handles the hydration-flash case (blank until
+SecureStore resolves) and that login sits outside the stack so there's no
+back-to-login after auth.
+
+Tested real credentials given in the spec against the live API —
+token returns as specced, login works end-to-end.
 
 ...
 
@@ -103,4 +119,18 @@ src/lib/storage.ts — SecureStore wrapper.
 src/features/auth/useLogin.ts — TanStack Query mutation; on success persist token + set store.
 
 Stop after this slice. No screens or navigation yet. Show me the files and explain the interceptor + token-injection choices so I can review before we continue.
+```
+
+**#3 - Slice 2**
+
+```
+Continuing the loyalty app. Build slice 2: query setup + login screen + navigation with auth gate. Follow ARCHITECTURE.md.
+
+src/lib/queryClient.ts — TanStack Query client (sane defaults: retry off or 1, no refetch-on-window-focus for RN).
+App.tsx — wrap in QueryClientProvider; call authStore.hydrate() on mount; render null/splash until isHydrated is true so the login screen doesn't flash.
+src/features/auth/LoginScreen.tsx — email + password inputs, submit via useLogin. Disable the button while the mutation is pending; show a normalized error inline on failure. System-default styling, clean and tidy (no design system).
+src/navigation/RootNavigator.tsx — native stack. Auth gate: gate on isHydrated first, then conditional-render on authStore.token (null → LoginScreen; present → Home). No imperative navigate() for auth.
+Minimal HomeScreen.tsx placeholder — just confirms you're logged in (e.g. "Logged in" + a logout button calling clearAuth). Real points/profile come in slice 3.
+
+Stop after this. The goal: launch → (hydrate) → login → land on placeholder Home → logout returns to login. Show me the files and confirm the gate handles the hydration-flash case, so I can review before slice 3.
 ```
