@@ -71,7 +71,29 @@ back-to-login after auth.
 Tested real credentials given in the spec against the live API —
 token returns as specced, login works end-to-end.
 
-...
+### 4. Slice 3 — points + profile on Home (Claude Code)
+
+Next I gave prompt to move further to link & develop: usePoints (CR, source of truth) + useProfile queries, Card/Button/ErrorView components, HomeScreen with Query-flag-driven states. (Prompt #4)
+
+It built: two useQuery hooks `(['cr'], ['profile'])`, reusable components,
+HomeScreen with combined loading → ErrorView (retry only the failed query) →
+data layout. isLoading over isPending (v5: isLoading = isPending && isFetching).
+
+My review: caught `Profile` type placed feature-local for no reason while other
+response types are central — moved it to api/types.ts and verified it matches
+the spec shape. Confirmed the response interceptor normalizes all errors so the
+ApiError cast is safe. Tested live data + forced-error path (ErrorView + retry).
+
+Updated flow:
+
+```
+Login -> Home screen visible - loader, then screen visible w points & profile with domey buttons (for next steps) & log out button.
+ErrorView is in sync for fallbacks
+```
+
+### 5.
+
+### ...
 
 ## Prompts used
 
@@ -133,4 +155,23 @@ src/navigation/RootNavigator.tsx — native stack. Auth gate: gate on isHydrated
 Minimal HomeScreen.tsx placeholder — just confirms you're logged in (e.g. "Logged in" + a logout button calling clearAuth). Real points/profile come in slice 3.
 
 Stop after this. The goal: launch → (hydrate) → login → land on placeholder Home → logout returns to login. Show me the files and confirm the gate handles the hydration-flash case, so I can review before slice 3.
+```
+
+**#3 - Slice 3**
+
+```
+Continuing the loyalty app. Build slice 3: points + profile on Home. Follow ARCHITECTURE.md and API_SPEC.md.
+
+src/features/loyalty/usePoints.ts — TanStack Query hook fetching the CR endpoint, queryKey ['cr']. This is the single source of truth for the points balance — return points plus whatever the screen needs.
+src/features/loyalty/useProfile.ts — Query hook for the profile endpoint, queryKey ['profile'].
+src/components/ — build Card.tsx, Button.tsx, ErrorView.tsx now (first needed here). System-default styling, clean and tidy, no theming abstraction. ErrorView takes a message + optional retry callback.
+src/features/loyalty/HomeScreen.tsx — replace the placeholder. Show points balance prominently, then profile info (name, email, customer_id). Two CTAs: "Scan to earn" and "View rewards".
+
+Drive loading / error / empty states from Query flags (isLoading, isError), not manual booleans. On error, render ErrorView with a retry that refetches. Combine the two queries' loading states sensibly.
+Keep the logout button.
+
+
+CTA handlers: Rewards and Scan screens don't exist yet (slices 4–5). Wire the buttons but leave handlers as clearly-marked TODO placeholders for now — don't navigate to routes that don't exist.
+
+Stop after this. Goal: log in → land on Home showing live points + profile from the API, with proper loading/error states. Show me the files and confirm the Query-flag-driven states, so I can review before slice 4.
 ```
