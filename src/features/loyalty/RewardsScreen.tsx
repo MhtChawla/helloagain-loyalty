@@ -13,7 +13,7 @@ import { useRedeemReward } from './useRedeemReward';
 import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { ErrorView } from '../../components/ErrorView';
-import type { Bounty, ApiError } from '../../api/types';
+import type { Bounty } from '../../api/types';
 
 export function RewardsScreen() {
   const [lastRedeemedId, setLastRedeemedId] = useState<string | null>(null);
@@ -25,7 +25,7 @@ export function RewardsScreen() {
   const isLoading = pointsQuery.isLoading || rewardsQuery.isLoading;
   const isError = pointsQuery.isError || rewardsQuery.isError;
   const errorMessage =
-    ((pointsQuery.error ?? rewardsQuery.error) as ApiError | null)?.message ??
+    (pointsQuery.error ?? rewardsQuery.error)?.message ??
     'Something went wrong';
 
   function refetch() {
@@ -69,7 +69,7 @@ export function RewardsScreen() {
     const redeemError =
       redeemMutation.isError &&
       redeemMutation.variables === item.id
-        ? ((redeemMutation.error as unknown as ApiError | null)?.message ?? 'Redemption failed')
+        ? (redeemMutation.error?.message ?? 'Redemption failed')
         : null;
 
     return (

@@ -1,13 +1,12 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { apiClient } from '../../api/client';
 import { endpoints } from '../../api/endpoints';
-import type { RedeemRewardResponse } from '../../api/types';
+import { queryClient } from '../../lib/queryClient';
+import type { ApiError, RedeemRewardResponse } from '../../api/types';
 
 export function useRedeemReward() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (bountyId: string): Promise<RedeemRewardResponse> => {
+  return useMutation<RedeemRewardResponse, ApiError, string>({
+    mutationFn: async (bountyId: string) => {
       const { data } = await apiClient.post<RedeemRewardResponse>(
         endpoints.redeemReward(),
         { bounty_id: bountyId }

@@ -101,6 +101,33 @@ Built: bounties query, redeem mutation invalidating ['cr']+['rewards'],
 FlatList w. ListEmptyComponent, affordability from usePoints (not echoed
 cr_points), per-item pending via mutation.variables.
 
+#### My review:
+
+##### 5b. Bug (debugged manually) — reward redeem didn't update Home balance
+
+Found during live testing. Symptom: redeem succeeded and the server
+deducted (correct balance after a cold restart), but Home's points stayed stale
+while the app was running.
+
+Diagnosis: ran a restart test to isolate server vs client — correct-after-restart
+ruled out the server, pointing at in-app cache. Traced it to two `QueryClient`
+instances: the `QueryClientProvider` rendered one client while the redeem mutation
+invalidated another, so `invalidateQueries` never reached the mounted ['cr'] query.
+
+Fix: consolidated to a single shared client, with mutations reading it via
+`useQueryClient()` instead of importing the singleton. Verified Home updates
+without a restart. Standardized this before slice 5 so coupon redeem uses the
+same pattern.
+
+##### 5c. Slice 4 review fixes
+
+- Per-item pending/error scoping: verified mutate() is called with the bare
+  bounty id (not the { bounty_id } object), so `variables === item.id` resolves
+  correctly and the spinner/error scope to the right row.
+- Error typing: removed the `as unknown as ApiError` double-casts; typed the
+  query/mutation error generic as ApiError so the normalized error flows through
+  without casting. Cleaner across HomeScreen and RewardsScreen.
+
 ### ...
 
 ## Prompts used

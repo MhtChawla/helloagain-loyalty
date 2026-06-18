@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import {
   ActivityIndicator,
   SafeAreaView,
@@ -6,20 +7,26 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation/RootNavigator';
 import { useAuthStore } from '../auth/authStore';
+import { queryClient } from '../../lib/queryClient';
 import { usePoints } from './usePoints';
 import { useProfile } from './useProfile';
 import { Card } from '../../components/Card';
 import { Button } from '../../components/Button';
 import { ErrorView } from '../../components/ErrorView';
-import type { ApiError } from '../../api/types';
 
 export function HomeScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const clearAuth = useAuthStore((s) => s.clearAuth);
+
+  useFocusEffect(
+    useCallback(() => {
+      queryClient.invalidateQueries({ queryKey: ['cr'] });
+    }, [])
+  );
 
   const pointsQuery = usePoints();
   const profileQuery = useProfile();
@@ -28,7 +35,7 @@ export function HomeScreen() {
   const isError = pointsQuery.isError || profileQuery.isError;
 
   const errorMessage =
-    ((pointsQuery.error ?? profileQuery.error) as ApiError | null)?.message ??
+    (pointsQuery.error ?? profileQuery.error)?.message ??
     'Something went wrong';
 
   function refetch() {
