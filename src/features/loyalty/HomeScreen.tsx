@@ -6,6 +6,9 @@ import {
   Text,
   View,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../../navigation/RootNavigator';
 import { useAuthStore } from '../auth/authStore';
 import { usePoints } from './usePoints';
 import { useProfile } from './useProfile';
@@ -15,6 +18,7 @@ import { ErrorView } from '../../components/ErrorView';
 import type { ApiError } from '../../api/types';
 
 export function HomeScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const clearAuth = useAuthStore((s) => s.clearAuth);
 
   const pointsQuery = usePoints();
@@ -82,9 +86,12 @@ export function HomeScreen() {
         {/* CTAs */}
         <View style={styles.ctas}>
           {/* TODO slice 5: open ScanModal */}
-          <Button label="Scan to earn" onPress={() => {}} />
-          {/* TODO slice 4: navigate to RewardsScreen */}
-          <Button label="View rewards" variant="outline" onPress={() => {}} />
+          <Button label="Scan to earn" onPress={() => { }} />
+          <Button
+            label="View rewards"
+            variant="outline"
+            onPress={() => navigation.navigate('Rewards')}
+          />
         </View>
 
         {/* Logout */}

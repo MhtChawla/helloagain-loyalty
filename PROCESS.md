@@ -91,7 +91,15 @@ Login -> Home screen visible - loader, then screen visible w points & profile wi
 ErrorView is in sync for fallbacks
 ```
 
-### 5.
+### 5. Slice 4 — rewards list + reward redemption (Claude Code)
+
+Prompt: useRewards (['rewards']) + useRedeemReward, RewardsScreen with FlatList,
+affordability from CR query, invalidate-on-redeem (no optimism — empty response),
+per-item pending, empty/loading/error states. (Prompt #5)
+
+Built: bounties query, redeem mutation invalidating ['cr']+['rewards'],
+FlatList w. ListEmptyComponent, affordability from usePoints (not echoed
+cr_points), per-item pending via mutation.variables.
 
 ### ...
 
@@ -157,7 +165,7 @@ Minimal HomeScreen.tsx placeholder — just confirms you're logged in (e.g. "Log
 Stop after this. The goal: launch → (hydrate) → login → land on placeholder Home → logout returns to login. Show me the files and confirm the gate handles the hydration-flash case, so I can review before slice 3.
 ```
 
-**#3 - Slice 3**
+**#4 - Slice 3**
 
 ```
 Continuing the loyalty app. Build slice 3: points + profile on Home. Follow ARCHITECTURE.md and API_SPEC.md.
@@ -175,3 +183,30 @@ CTA handlers: Rewards and Scan screens don't exist yet (slices 4–5). Wire the 
 
 Stop after this. Goal: log in → land on Home showing live points + profile from the API, with proper loading/error states. Show me the files and confirm the Query-flag-driven states, so I can review before slice 4.
 ```
+
+**#5 - Slice 3**
+
+```
+Continuing the loyalty app. Build slice 4: rewards list + reward redemption. Follow ARCHITECTURE.md and API_SPEC.md.
+
+src/features/loyalty/useRewards.ts — Query hook for the bounties endpoint, queryKey ['rewards'].
+src/features/loyalty/useRedeemReward.ts — mutation POST to the reward-redeem endpoint with { bounty_id }. Important: the response returns only { bounty_id } — no cr_points, no balance. So do NOT optimistically deduct points (you'd be guessing the new balance). On success, invalidate ['cr'] and ['rewards'] — the refetch confirms the real balance and re-flips is_redeemable. Handle server-side rejection gracefully.
+src/features/loyalty/RewardsScreen.tsx:
+
+FlatList of bounties (not .map in a ScrollView). Each row is a Card: name, description, needed_points, and a redeem Button.
+Affordability = the CR query (usePoints), the single source of truth — not the cr_points echoed inside each bounty. Disable redeem when !is_redeemable || crPoints < needed_points (belt and suspenders).
+Per-item pending: only the reward currently being redeemed shows a spinner/disabled state; the others stay interactive (track via the mutation's variables).
+Query-flag states: loading → spinner; error → ErrorView + retry; empty list → a clear "no rewards available" message (empty state matters now).
+On successful redeem, give feedback (toast/inline) — the balance updates on its own via invalidation.
+
+
+Wire Home's "View rewards" CTA to navigate here (the route exists now — remove that TODO).
+
+Stop after this. Goal: Home → Rewards → see live bounties with correct affordability, redeem an affordable one, watch the balance refetch. Show me the files and confirm: (a) affordability reads from the CR query not the bounty's echoed field, and (b) the redeem invalidates rather than guessing the balance. Review before slice 5.
+```
+
+<!--  -->
+
+in reward list
+
+the desc. or idk what that is - all strings have <p> </p> front & end
