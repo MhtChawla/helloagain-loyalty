@@ -11,6 +11,13 @@ export function useRedeemCoupon() {
         endpoints.redeemCoupon(),
         { code }
       );
+      if (
+        !data.success ||
+        !Number.isFinite(data.points) ||
+        !Number.isFinite(data.cr_points)
+      ) {
+        throw { status: 422, message: 'Invalid coupon code' } as ApiError;
+      }
       return data;
     },
     onSuccess: (data) => {

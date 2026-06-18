@@ -2,11 +2,11 @@ import { useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
-  SafeAreaView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePoints } from './usePoints';
 import { useRewards } from './useRewards';
 import { useRedeemReward } from './useRedeemReward';
@@ -78,7 +78,7 @@ export function RewardsScreen() {
           <Text style={styles.rewardName}>{item.name}</Text>
           <Text style={styles.pointsCost}>{item.needed_points} pts</Text>
         </View>
-        <Text style={styles.description}>{item.description}</Text>
+        <Text style={styles.description}>{item.description.replace(/<[^>]*>/g, '').trim()}</Text>
 
         {lastRedeemedId === item.id ? (
           <Text style={styles.successText}>Redeemed!</Text>

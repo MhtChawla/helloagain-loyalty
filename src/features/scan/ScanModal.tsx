@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import {
+  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
@@ -14,7 +15,6 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import type { BarcodeScanningResult } from 'expo-camera';
 import { useRedeemCoupon } from '../loyalty/useRedeemCoupon';
 import { Button } from '../../components/Button';
-import type { ApiError } from '../../api/types';
 
 export function ScanModal() {
   const navigation = useNavigation();
@@ -22,7 +22,7 @@ export function ScanModal() {
   const [manualCode, setManualCode] = useState('');
   const scannedRef = useRef(false); // double-scan guard
 
-  const { mutate: redeemCoupon, isPending, isSuccess, error, data } = useRedeemCoupon();
+  const { mutate: redeemCoupon, isPending, isSuccess, data } = useRedeemCoupon();
 
   useEffect(() => {
     requestPermission();
@@ -32,8 +32,9 @@ export function ScanModal() {
     const trimmed = code.trim();
     if (!trimmed || isPending) return;
     redeemCoupon(trimmed, {
-      onError: () => {
-        scannedRef.current = false; // unlock for retry
+      onError: (err) => {
+        navigation.goBack();
+        Alert.alert('Invalid coupon', err.message ?? 'Invalid coupon code');
       },
     });
   }
@@ -62,7 +63,6 @@ export function ScanModal() {
     );
   }
 
-  const apiError = error as ApiError | null;
 
   return (
     <KeyboardAvoidingView
@@ -91,11 +91,15 @@ export function ScanModal() {
             <View style={styles.noCameraBox}>
               {permission === null ? (
                 <ActivityIndicator />
+              ) : permission.canAskAgain ? (
+                <TouchableOpacity onPress={requestPermission}>
+                  <Text style={styles.noCameraText}>
+                    Tap to grant camera access
+                  </Text>
+                </TouchableOpacity>
               ) : (
                 <Text style={styles.noCameraText}>
-                  {permission.canAskAgain
-                    ? 'Camera permission required'
-                    : 'Camera access denied — use manual entry below'}
+                  Camera access denied — use manual entry below
                 </Text>
               )}
             </View>
@@ -108,11 +112,6 @@ export function ScanModal() {
             </View>
           )}
         </View>
-
-        {/* Error */}
-        {apiError ? (
-          <Text style={styles.errorText}>{apiError.message}</Text>
-        ) : null}
 
         {/* Manual entry — always visible */}
         <View style={styles.manual}>
@@ -190,11 +189,6 @@ const styles = StyleSheet.create({
   scanningText: {
     color: '#fff',
     fontSize: 16,
-  },
-  errorText: {
-    color: '#c00',
-    fontSize: 14,
-    marginBottom: 8,
   },
   manual: {
     gap: 10,

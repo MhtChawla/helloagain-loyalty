@@ -138,7 +138,13 @@ Built: coupon mutation (setQueryData(['cr']) from server-confirmed cr_points,
 then invalidate ['cr']+['rewards']), ScanModal with CameraView + onBarcodeScanned,
 manual TextInput fallback, scan lock, permission-denied handling, modal presentation.
 
-My review:
+My review: generated 2 QR with one wrong & one right code(YFQY2D) then scanned each, for YFQY2D balance, & for wrong not but it still displayed the points added screen with undefined value. I've iterated this error `` & instead directed it to show error modal of invalid coupon code.
+
+When camera `permission denied`, there was no catch so I reviewed & gave it another permission modal to allow. If still not camera, also manual fallback (typed YFQY2D — points added, no camera needed),
+confirmed instant+reconciled balance, verified double-scan lock and graceful
+already-redeemed error.
+
+Also while testing, found it uses `SafeAreaView` from react-native, which is depreceated so replaced all imports from `react-native-safe-area-context`.
 
 ## Prompts used
 
@@ -260,9 +266,3 @@ Wire Home's "Scan to earn" CTA to present this modal (remove the TODO). Present 
 
 Stop after this. Goal: Home → Scan → either scan a QR or type the code → points added → back on Home with updated balance. Show me the files and confirm: (a) the manual fallback works with no camera, (b) coupon redeem writes the returned cr_points then invalidates, (c) double-scan is guarded. Review before we wrap.
 ```
-
-<!--  -->
-
-in reward list
-
-the desc. or idk what that is - all strings have <p> </p> front & end
