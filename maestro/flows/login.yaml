@@ -1,0 +1,20 @@
+appId: com.anonymous.helloagainloyalty
+---
+- launchApp:
+    clearState: true
+
+- assertVisible: "Sign in"
+
+- tapOn:
+    text: "Email"
+- inputText: ${EMAIL}
+
+- tapOn:
+    text: "Password"
+- inputText: ${PASSWORD}
+
+- tapOn:
+    text: "Sign in"
+    index: 1
+
+- assertVisible: "Your points"
